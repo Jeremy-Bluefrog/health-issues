@@ -17,18 +17,17 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Java JDK 21 (Temurin)
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '9.3.1'
+      - name: Accept Android SDK Licenses & Install Platform 36
+        run: |
+          echo "Accepting Android SDK licenses..."
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          echo "Ensuring platform 36 and build-tools 36.0.0..."
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools" || true
 
       - name: Prepare Debug Keystore
         run: |
@@ -37,7 +36,7 @@ jobs:
             keytool -genkey -v -keystore debug.keystore -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=Android Debug,O=Android,C=US"
           fi
 
-      - name: Prepare .env Configuration
+      - name: Prepare Environment File
         run: |
           if [ ! -f ".env" ]; then
             cp .env.example .env
@@ -46,17 +45,18 @@ jobs:
             echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env
           fi
 
-      - name: Ensure Gradle Wrapper
-        run: |
-          if [ ! -f "./gradlew" ]; then
-            gradle wrapper --gradle-version 9.3.1
-          fi
-          chmod +x ./gradlew
-
       - name: Build Debug APK with Gradle
-        run: ./gradlew :app:assembleDebug --stacktrace
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.3.1'
+          arguments: :app:assembleDebug --stacktrace --no-daemon
 
-      - name: Upload APK Artifact
+      - name: Locate Generated APK
+        run: |
+          echo "Generated APK files:"
+          find app/build/outputs/apk/ -name "*.apk" -ls
+
+      - name: Upload Debug APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: SymptomAI-Debug-APK
