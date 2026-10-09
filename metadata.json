@@ -1,0 +1,6 @@
+{
+  "name": "症狀AI隨身問",
+  "description": "輸入不舒服症狀，透過智慧AI深入分析與互動式追問，提供即時健康指引與就醫科別建議。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,150 @@
+@import "tailwindcss";
+
+:root {
+  /* Material Design 3 (M3) Color Tokens */
+  --md-sys-color-primary: #006874;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #9eeffd;
+  --md-sys-color-on-primary-container: #001f24;
+
+  --md-sys-color-secondary: #4a6267;
+  --md-sys-color-on-secondary: #ffffff;
+  --md-sys-color-secondary-container: #cde7ec;
+  --md-sys-color-on-secondary-container: #051f23;
+
+  --md-sys-color-tertiary: #525e7d;
+  --md-sys-color-on-tertiary: #ffffff;
+  --md-sys-color-tertiary-container: #dae2ff;
+  --md-sys-color-on-tertiary-container: #0e1a37;
+
+  --md-sys-color-error: #ba1a1a;
+  --md-sys-color-on-error: #ffffff;
+  --md-sys-color-error-container: #ffdad6;
+  --md-sys-color-on-error-container: #410002;
+
+  --md-sys-color-surface: #f8fafb;
+  --md-sys-color-surface-dim: #d8dbdc;
+  --md-sys-color-surface-bright: #f8fafb;
+  --md-sys-color-surface-container-lowest: #ffffff;
+  --md-sys-color-surface-container-low: #f2f5f6;
+  --md-sys-color-surface-container: #eceff0;
+  --md-sys-color-surface-container-high: #e6e9ea;
+  --md-sys-color-surface-container-highest: #e0e3e4;
+
+  --md-sys-color-on-surface: #191c1d;
+  --md-sys-color-on-surface-variant: #3f484a;
+  --md-sys-color-outline: #6f797a;
+  --md-sys-color-outline-variant: #bfc8ca;
+
+  /* Clinical Triage Tokens (M3 Harmonized) */
+  --md-triage-emergency: #ba1a1a;
+  --md-triage-emergency-container: #ffdad6;
+  --md-triage-emergency-on-container: #410002;
+
+  --md-triage-prompt: #9c4300;
+  --md-triage-prompt-container: #ffdbcc;
+  --md-triage-prompt-on-container: #351000;
+
+  --md-triage-clinic: #7a5900;
+  --md-triage-clinic-container: #ffe08d;
+  --md-triage-clinic-on-container: #261900;
+
+  --md-triage-selfcare: #006c4c;
+  --md-triage-selfcare-container: #89f8c7;
+  --md-triage-selfcare-on-container: #002114;
+
+  font-family: 'Noto Sans TC', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background-color: var(--md-sys-color-surface-container-low);
+  color: var(--md-sys-color-on-surface);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* Material 3 Shape Classes */
+.m3-shape-full {
+  border-radius: 9999px;
+}
+.m3-shape-extra-large {
+  border-radius: 28px;
+}
+.m3-shape-large {
+  border-radius: 20px;
+}
+.m3-shape-medium {
+  border-radius: 14px;
+}
+.m3-shape-small {
+  border-radius: 8px;
+}
+
+/* Material 3 Interactive States & Ripples */
+.m3-ripple {
+  position: relative;
+  overflow: hidden;
+}
+.m3-ripple::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: currentColor;
+  opacity: 0;
+  transition: opacity 0.2s cubic-bezier(0.2, 0, 0, 1);
+  pointer-events: none;
+}
+.m3-ripple:hover::after {
+  opacity: 0.08;
+}
+.m3-ripple:active::after {
+  opacity: 0.16;
+}
+
+/* Material 3 Elevation & Surface hierarchy */
+.m3-surface-low {
+  background-color: var(--md-sys-color-surface-container-low);
+}
+.m3-surface-container {
+  background-color: var(--md-sys-color-surface-container);
+}
+.m3-surface-high {
+  background-color: var(--md-sys-color-surface-container-high);
+}
+.m3-surface-highest {
+  background-color: var(--md-sys-color-surface-container-highest);
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--md-sys-color-outline-variant);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--md-sys-color-outline);
+}
+
+/* Animations */
+@keyframes m3FadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: m3FadeIn 0.25s cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+
