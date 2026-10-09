@@ -20,20 +20,20 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Java JDK 21 (Temurin)
+      - name: Set up Java JDK 17 (Temurin)
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '17'
 
-      - name: Accept Android SDK Licenses & Permissions
+      - name: Accept Android SDK Licenses & Setup Components
         run: |
-          echo "Setting up Android SDK permissions..."
+          echo "Setting up Android SDK environment..."
           sudo chown -R $USER:$USER "$ANDROID_HOME" 2>/dev/null || true
           mkdir -p "$ANDROID_HOME/licenses" 2>/dev/null || sudo mkdir -p "$ANDROID_HOME/licenses"
           sudo chown -R $USER:$USER "$ANDROID_HOME/licenses" 2>/dev/null || true
 
-          echo "Writing license hashes..."
+          echo "Writing license acceptance hashes..."
           printf "%s\n" \
             "24333f8a635201da9200f3373f8a76630f0e4f13" \
             "84831b9409646a918e30573bab4c9c91346d8abd" \
@@ -67,10 +67,19 @@ jobs:
           cp "$ANDROID_HOME/licenses/"* "$HOME/.android/licenses/" 2>/dev/null || true
           touch "$HOME/.android/repositories.cfg"
 
-          export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH"
-          if command -v sdkmanager >/dev/null 2>&1; then
-            yes | sdkmanager --licenses 2>/dev/null || true
-            sdkmanager "platforms;android-36" "build-tools;36.0.0" 2>/dev/null || true
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
+
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+
+          echo "Installing platforms;android-36 and build-tools;36.0.0..."
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -f "$SDKMANAGER" ]; then
+            SDKMANAGER=$(find "$ANDROID_HOME" -name "sdkmanager" 2>/dev/null | head -n 1)
+          fi
+          if [ -n "$SDKMANAGER" ] && [ -x "$SDKMANAGER" ]; then
+            yes | "$SDKMANAGER" --licenses 2>/dev/null || true
+            yes | "$SDKMANAGER" "platforms;android-36" "build-tools;36.0.0" "platform-tools" || true
           fi
 
       - name: Prepare Debug Keystore
@@ -101,7 +110,7 @@ jobs:
         run: |
           echo "Building Android Debug APK with Gradle 9.3.1..."
           chmod +x gradlew || true
-          gradle :app:assembleDebug --no-configuration-cache --stacktrace --no-daemon
+          gradle :app:assembleDebug --no-configuration-cache --no-daemon
 
       - name: Locate Generated APK
         run: |
