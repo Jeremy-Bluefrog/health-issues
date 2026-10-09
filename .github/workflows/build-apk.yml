@@ -12,6 +12,10 @@ jobs:
     name: Build Debug APK
     runs-on: ubuntu-latest
 
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -22,18 +26,52 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Prepare Android SDK & Licenses
+      - name: Accept Android SDK Licenses & Permissions
         run: |
-          echo "Setting up Android SDK permissions and accepting licenses..."
+          echo "Setting up Android SDK permissions..."
           sudo chown -R $USER:$USER "$ANDROID_HOME" 2>/dev/null || true
-          mkdir -p "$ANDROID_HOME/licenses"
-          echo -e "24333f8a635201da9200f3373f8a76630f0e4f13\n84831b9409646a918e30573bab4c9c91346d8abd\nd56f5187479451eabf01fb78af6dfcb131a6481e" > "$ANDROID_HOME/licenses/android-sdk-license"
-          echo -e "24333f8a635201da9200f3373f8a76630f0e4f13\n84831b9409646a918e30573bab4c9c91346d8abd" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
-          yes | sdkmanager --licenses 2>/dev/null || true
-          sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools" 2>/dev/null || true
+          mkdir -p "$ANDROID_HOME/licenses" 2>/dev/null || sudo mkdir -p "$ANDROID_HOME/licenses"
+          sudo chown -R $USER:$USER "$ANDROID_HOME/licenses" 2>/dev/null || true
+
+          echo "Writing license hashes..."
+          printf "%s\n" \
+            "24333f8a635201da9200f3373f8a76630f0e4f13" \
+            "84831b9409646a918e30573bab4c9c91346d8abd" \
+            "d56f5187479451eabf01fb78af6dfcb131a6481e" \
+            "89338d0d105d1ec83e378499541872942f3f1645" \
+            > "$ANDROID_HOME/licenses/android-sdk-license"
+
+          printf "%s\n" \
+            "84831b9409646a918e30573bab4c9c91346d8abd" \
+            "24333f8a635201da9200f3373f8a76630f0e4f13" \
+            > "$ANDROID_HOME/licenses/android-sdk-preview-license"
+
+          printf "%s\n" \
+            "859f317696f67ef3d7f30a50a5560e7834b43903" \
+            "d97546519014a10782af116e08906473595e2f20" \
+            > "$ANDROID_HOME/licenses/android-sdk-arm-dbt-license"
+
+          printf "%s\n" \
+            "601085b94cd77f6b54b86eebd7773a2384e5b4a4" \
+            > "$ANDROID_HOME/licenses/android-googletv-license"
+
+          printf "%s\n" \
+            "33b6a2b649200204224e7b320e08f2241659ecfe" \
+            > "$ANDROID_HOME/licenses/google-gdk-license"
+
+          printf "%s\n" \
+            "e9acab5b5fbb560a72cfa4e23e30ceab4f49ee2b" \
+            > "$ANDROID_HOME/licenses/mips-android-sysimage-license"
+
+          mkdir -p "$HOME/.android/licenses"
+          cp "$ANDROID_HOME/licenses/"* "$HOME/.android/licenses/" 2>/dev/null || true
+          touch "$HOME/.android/repositories.cfg"
+
+          export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH"
+          if command -v sdkmanager >/dev/null 2>&1; then
+            yes | sdkmanager --licenses 2>/dev/null || true
+            sdkmanager "platforms;android-36" "build-tools;36.0.0" 2>/dev/null || true
+          fi
 
       - name: Prepare Debug Keystore
         run: |
