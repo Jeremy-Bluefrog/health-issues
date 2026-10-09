@@ -22,29 +22,24 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Set up Android SDK & Accept Licenses
-        run: |
-          echo "Setting up Android SDK environment and licenses..."
-          export ANDROID_HOME="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
-          export ANDROID_SDK_ROOT="$ANDROID_HOME"
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
 
+      - name: Prepare Android SDK & Licenses
+        run: |
+          echo "Setting up Android SDK permissions and accepting licenses..."
+          sudo chown -R $USER:$USER "$ANDROID_HOME" 2>/dev/null || true
           mkdir -p "$ANDROID_HOME/licenses"
           echo -e "24333f8a635201da9200f3373f8a76630f0e4f13\n84831b9409646a918e30573bab4c9c91346d8abd\nd56f5187479451eabf01fb78af6dfcb131a6481e" > "$ANDROID_HOME/licenses/android-sdk-license"
           echo -e "24333f8a635201da9200f3373f8a76630f0e4f13\n84831b9409646a918e30573bab4c9c91346d8abd" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
-
-          # Find sdkmanager if available and install required platform
-          SDKMANAGER=$(which sdkmanager || find "$ANDROID_HOME" -name "sdkmanager" 2>/dev/null | head -n 1)
-          if [ -n "$SDKMANAGER" ]; then
-            echo "Found sdkmanager at: $SDKMANAGER"
-            yes | "$SDKMANAGER" --licenses || true
-            "$SDKMANAGER" "platforms;android-36" "build-tools;36.0.0" "platform-tools" || true
-          fi
+          yes | sdkmanager --licenses 2>/dev/null || true
+          sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools" 2>/dev/null || true
 
       - name: Prepare Debug Keystore
         run: |
           if [ ! -f "debug.keystore" ]; then
             echo "Generating debug.keystore..."
-            keytool -genkeypair -v -keystore debug.keystore -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=Android Debug,O=Android,C=US"
+            keytool -genkeypair -v -keystore debug.keystore -storetype JKS -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=Android Debug,O=Android,C=US"
           else
             echo "debug.keystore already exists."
           fi
@@ -67,7 +62,8 @@ jobs:
       - name: Build Debug APK with Gradle
         run: |
           echo "Building Android Debug APK with Gradle 9.3.1..."
-          gradle :app:assembleDebug --stacktrace --no-daemon
+          chmod +x gradlew || true
+          gradle :app:assembleDebug --no-configuration-cache --stacktrace --no-daemon
 
       - name: Locate Generated APK
         run: |
