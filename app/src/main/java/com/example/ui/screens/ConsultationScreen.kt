@@ -134,65 +134,52 @@ private fun InitialInputForm(
             .padding(horizontal = 16.dp),
         contentPadding = PaddingValues(top = 16.dp, bottom = 40.dp)
     ) {
-        // Hero Header Banner
+        // Minimalist Clean Header Banner
         item {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(
-                        Brush.linearGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.primary,
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.85f),
-                                MaterialTheme.colorScheme.secondary
-                            )
-                        )
-                    )
-                    .padding(20.dp)
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                ),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
             ) {
-                Column {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(Color.White.copy(alpha = 0.2f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.HealthAndSafety,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column {
-                            Text(
-                                text = "智能症狀分診與深度追問",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                            Text(
-                                text = "輸入身體不適，AI 循序追問鑑別關鍵病徵",
-                                fontSize = 12.sp,
-                                color = Color.White.copy(alpha = 0.9f)
-                            )
-                        }
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.HealthAndSafety,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
                     }
-
-                    Spacer(modifier = Modifier.height(14.dp))
-                    Text(
-                        text = "💡 請盡量具體描述身體哪裡不適、感覺如何。AI 收到後會主動提出追問，一步步釐清潛在病因與就診科別。",
-                        fontSize = 12.sp,
-                        color = Color.White.copy(alpha = 0.95f),
-                        lineHeight = 17.sp
-                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = "智能症狀分診與深度追問",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "輸入身體不適，AI 將引導追問並提供精準分科建議",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
-            Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.height(14.dp))
         }
 
         // Primary Symptom Input Card

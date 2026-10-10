@@ -1,0 +1,133 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Debug APK
+    runs-on: ubuntu-latest
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java JDK 17 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Accept Android SDK Licenses & Setup Components
+        run: |
+          echo "Setting up Android SDK environment..."
+          sudo chown -R $USER:$USER "$ANDROID_HOME" 2>/dev/null || true
+          mkdir -p "$ANDROID_HOME/licenses" 2>/dev/null || sudo mkdir -p "$ANDROID_HOME/licenses"
+          sudo chown -R $USER:$USER "$ANDROID_HOME/licenses" 2>/dev/null || true
+          
+          echo "Writing license acceptance hashes..."
+          cat << 'EOF' > "$ANDROID_HOME/licenses/android-sdk-license"
+          24333f8a635201da9200f3373f8a76630f0e4f13
+          84831b9409646a918e30573bab4c9c91346d8abd
+          d56f5187479451eabf01fb78af6dfcb131a6481e
+          89338d0d105d1ec83e378499541872942f3f1645
+          272e008d4b3b2762b70f074a36d939626eab2560
+          601085b94cd77f6b54b86eebd7773a2384e5b4a4
+          EOF
+
+          cat << 'EOF' > "$ANDROID_HOME/licenses/android-sdk-preview-license"
+          84831b9409646a918e30573bab4c9c91346d8abd
+          24333f8a635201da9200f3373f8a76630f0e4f13
+          504667f4c0de7af1a06de9f4b1727b84351f2910
+          EOF
+
+          cat << 'EOF' > "$ANDROID_HOME/licenses/android-sdk-arm-dbt-license"
+          859f317696f67ef3d7f30a50a5560e7834b43903
+          d97546519014a10782af116e08906473595e2f20
+          EOF
+
+          cat << 'EOF' > "$ANDROID_HOME/licenses/android-googletv-license"
+          601085b94cd77f6b54b86eebd7773a2384e5b4a4
+          EOF
+
+          cat << 'EOF' > "$ANDROID_HOME/licenses/google-gdk-license"
+          33b6a2b649200204224e7b320e08f2241659ecfe
+          EOF
+
+          cat << 'EOF' > "$ANDROID_HOME/licenses/mips-android-sysimage-license"
+          e9acab5b5fbb560a72cfa4e23e30ceab4f49ee2b
+          EOF
+
+          mkdir -p "$HOME/.android/licenses"
+          cp "$ANDROID_HOME/licenses/"* "$HOME/.android/licenses/" 2>/dev/null || true
+          touch "$HOME/.android/repositories.cfg"
+
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+
+          echo "Installing platforms;android-36 and build-tools..."
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -f "$SDKMANAGER" ]; then
+            SDKMANAGER=$(find "$ANDROID_HOME" -name "sdkmanager" -type f 2>/dev/null | head -n 1)
+          fi
+          if [ -n "$SDKMANAGER" ] && [ -x "$SDKMANAGER" ]; then
+            echo "Using sdkmanager at: $SDKMANAGER"
+            "$SDKMANAGER" --licenses <<< $'y\ny\ny\ny\ny\ny\ny\ny\ny\n' 2>/dev/null || true
+            "$SDKMANAGER" "platforms;android-36" || "$SDKMANAGER" --channel=1 "platforms;android-36" || "$SDKMANAGER" --channel=3 "platforms;android-36" || true
+            "$SDKMANAGER" "build-tools;36.0.0" || "$SDKMANAGER" --channel=1 "build-tools;36.0.0" || "$SDKMANAGER" --channel=3 "build-tools;36.0.0" || true
+          fi
+          echo "Available SDK Platforms:"
+          ls -la "$ANDROID_HOME/platforms" || true
+
+      - name: Prepare Debug Keystore
+        run: |
+          if [ ! -f "debug.keystore" ]; then
+            echo "Generating debug.keystore..."
+            keytool -genkeypair -v -keystore debug.keystore -storetype JKS -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=Android Debug,O=Android,C=US"
+          else
+            echo "debug.keystore already exists."
+          fi
+
+      - name: Prepare Environment File
+        run: |
+          if [ ! -f ".env" ]; then
+            cp .env.example .env
+          fi
+          if [ -n "${{ secrets.GEMINI_API_KEY }}" ]; then
+            echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env
+          fi
+
+      - name: Set up Gradle 9.3.1
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.3.1'
+          validate-wrappers: false
+
+      - name: Build Debug APK with Gradle
+        run: |
+          echo "Ensuring Gradle wrapper is available..."
+          gradle wrapper --gradle-version 9.3.1 || true
+          chmod +x gradlew || true
+          echo "Building Android Debug APK with Gradle 9.3.1..."
+          gradle :app:assembleDebug --stacktrace
+
+      - name: Locate Generated APK
+        run: |
+          echo "Generated APK files:"
+          find app/build/outputs/apk/ -name "*.apk" -ls
+
+      - name: Upload Debug APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SymptomAI-Debug-APK
+          path: app/build/outputs/apk/debug/*.apk
+          retention-days: 30
+          if-no-files-found: error
