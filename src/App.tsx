@@ -59,6 +59,7 @@ export const App: React.FC = () => {
 
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [customApiKey, setCustomApiKey] = useState(() => localStorage.getItem('user_gemini_api_key') || '');
+  const [selectedModel, setSelectedModel] = useState(() => localStorage.getItem('selected_gemini_model') || 'gemini-2.5-flash');
   const [showKeyModal, setShowKeyModal] = useState(false);
 
   // Session State
@@ -120,7 +121,7 @@ export const App: React.FC = () => {
     setIsAnalyzing(true);
 
     try {
-      const result = await GeminiService.analyze(input, [], false, 1, customApiKey);
+      const result = await GeminiService.analyze(input, [], false, 1, customApiKey, selectedModel);
       const aiMsg: ChatMessage = {
         id: `ai_${Date.now()}`,
         sender: 'AI',
@@ -163,7 +164,7 @@ export const App: React.FC = () => {
         text: m.text,
       }));
 
-      const result = await GeminiService.analyze(input, historyTuples, false, nextRound, customApiKey);
+      const result = await GeminiService.analyze(input, historyTuples, false, nextRound, customApiKey, selectedModel);
       const aiMsg: ChatMessage = {
         id: `ai_${Date.now()}`,
         sender: 'AI',
@@ -203,7 +204,7 @@ export const App: React.FC = () => {
         text: m.text,
       }));
 
-      const finalResult = await GeminiService.analyze(input, historyTuples, true, nextRound, customApiKey);
+      const finalResult = await GeminiService.analyze(input, historyTuples, true, nextRound, customApiKey, selectedModel);
       const aiMsg: ChatMessage = {
         id: `ai_final_${Date.now()}`,
         sender: 'AI',
@@ -684,29 +685,52 @@ export const App: React.FC = () => {
             <p className="text-xs text-[#3f484a] leading-relaxed">
               系統已預載雲端金鑰或內建臨床鑑別引擎。如果您有個人 Google Gemini API Key，可在此輸入自訂金鑰以使用專屬配額。
             </p>
-            <input
-              type="password"
-              value={customApiKey}
-              onChange={(e) => setCustomApiKey(e.target.value)}
-              placeholder="AIzaSy..."
-              className="w-full px-4 py-2.5 rounded-[14px] border border-[#6f797a] text-sm focus:outline-none focus:ring-2 focus:ring-[#006874]"
-            />
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-[#191c1d] mb-1">選擇 Gemini 模型版本：</label>
+                <select
+                  value={selectedModel}
+                  onChange={(e) => setSelectedModel(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-[14px] border border-[#6f797a] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#006874]"
+                >
+                  <option value="gemini-2.5-flash">Gemini 2.5 Flash (推薦・極速智能)</option>
+                  <option value="gemini-1.5-flash">Gemini 1.5 Flash (經典穩定)</option>
+                  <option value="gemini-2.5-pro">Gemini 2.5 Pro (進階・深度推理)</option>
+                  <option value="gemini-1.5-pro">Gemini 1.5 Pro (經典高階)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#191c1d] mb-1">自訂 Google Gemini API Key (選填)：</label>
+                <input
+                  type="password"
+                  value={customApiKey}
+                  onChange={(e) => setCustomApiKey(e.target.value)}
+                  placeholder="AIzaSy..."
+                  className="w-full px-4 py-2.5 rounded-[14px] border border-[#6f797a] text-sm focus:outline-none focus:ring-2 focus:ring-[#006874]"
+                />
+              </div>
+            </div>
+
             <div className="flex justify-end space-x-2 pt-2">
               <button
                 type="button"
                 onClick={() => {
                   setCustomApiKey('');
+                  setSelectedModel('gemini-2.5-flash');
                   localStorage.removeItem('user_gemini_api_key');
+                  localStorage.removeItem('selected_gemini_model');
                   setShowKeyModal(false);
                 }}
                 className="px-4 py-2 rounded-full text-xs font-semibold text-[#3f484a] hover:bg-[#eceff0]"
               >
-                清除自訂
+                恢復預設
               </button>
               <button
                 type="button"
                 onClick={() => {
                   localStorage.setItem('user_gemini_api_key', customApiKey.trim());
+                  localStorage.setItem('selected_gemini_model', selectedModel);
                   setShowKeyModal(false);
                 }}
                 className="px-5 py-2 rounded-full text-xs font-bold bg-[#006874] text-white hover:bg-[#00505a]"

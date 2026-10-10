@@ -2,7 +2,7 @@ import { AiAnalysisResult, InitialSymptomInput, TriageLevel } from '../types';
 import { ClinicalKnowledgeEngine } from './clinicalKnowledge';
 
 export class GeminiService {
-  private static readonly MODEL = 'gemini-2.5-flash';
+  private static readonly MODEL = 'gemini-1.5-flash';
   private static readonly BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models/';
 
   static async analyze(
@@ -10,7 +10,8 @@ export class GeminiService {
     history: Array<{ speaker: string; text: string }>,
     isFinal: boolean = false,
     round: number = 1,
-    customApiKey?: string
+    customApiKey?: string,
+    selectedModel: string = 'gemini-2.5-flash'
   ): Promise<AiAnalysisResult> {
     const apiKey = (customApiKey || process.env.GEMINI_API_KEY || '').trim();
 
@@ -78,7 +79,8 @@ JSON結構規範：
         isFinal ? `\n【請產出最終完整綜合評估分析報告】` : `\n【請進行分診評估並提出精準的後續追問問題】`
       ].filter(Boolean).join('\n');
 
-      const response = await fetch(`${this.BASE_URL}${this.MODEL}:generateContent?key=${apiKey}`, {
+      const modelToUse = selectedModel || 'gemini-2.5-flash';
+      const response = await fetch(`${this.BASE_URL}${modelToUse}:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
