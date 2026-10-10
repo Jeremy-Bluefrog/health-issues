@@ -80,21 +80,39 @@ JSON結構規範：
       ].filter(Boolean).join('\n');
 
       const modelToUse = selectedModel || 'gemini-2.5-flash';
-      const response = await fetch(`${this.BASE_URL}${modelToUse}:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: promptParts }] }],
-          systemInstruction: { parts: [{ text: systemInstruction }] },
-          generationConfig: {
-            responseMimeType: 'application/json',
-            temperature: 0.3,
-          },
-        }),
-      });
+      const modelsToTry = [modelToUse, 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.5-pro'].filter(
+        (m, idx, arr) => arr.indexOf(m) === idx
+      );
 
-      if (!response.ok) {
-        console.error(`Gemini API error: ${response.status} ${response.statusText}`);
+      let response: Response | null = null;
+
+      for (const m of modelsToTry) {
+        try {
+          const res = await fetch(`${this.BASE_URL}${m}:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: promptParts }] }],
+              systemInstruction: { parts: [{ text: systemInstruction }] },
+              generationConfig: {
+                responseMimeType: 'application/json',
+                temperature: 0.3,
+              },
+            }),
+          });
+          if (res.ok) {
+            response = res;
+            break;
+          } else {
+            console.warn(`Model ${m} failed with status ${res.status}, trying next model...`);
+          }
+        } catch (e) {
+          console.warn(`Model ${m} threw error, trying next model...`, e);
+        }
+      }
+
+      if (!response || !response.ok) {
+        console.warn('All Gemini models failed or offline, falling back to Clinical Knowledge Engine.');
         return ClinicalKnowledgeEngine.analyze(input, history, isFinal, round);
       }
 
