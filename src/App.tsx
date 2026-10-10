@@ -379,6 +379,16 @@ export const App: React.FC = () => {
                   <p className="text-xs sm:text-sm text-[#3f484a]">
                     輸入主要症狀，AI 即刻分析並主動提出關鍵追問
                   </p>
+                  <div className="pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setShowKeyModal(true)}
+                      className="inline-flex items-center text-xs font-medium text-[#006874] bg-[#cde7ec]/60 hover:bg-[#cde7ec] px-3 py-1 rounded-full transition-colors"
+                    >
+                      <Key className="w-3.5 h-3.5 mr-1" />
+                      點此設定您的專屬 Gemini API Key（可選）
+                    </button>
+                  </div>
                 </div>
 
                 {/* Main Card */}
