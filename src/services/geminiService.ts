@@ -80,7 +80,7 @@ JSON結構規範：
       ].filter(Boolean).join('\n');
 
       const modelToUse = selectedModel || 'gemini-2.5-flash';
-      const modelsToTry = [modelToUse, 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.5-pro'].filter(
+      const modelsToTry = [modelToUse, 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.5-pro'].filter(
         (m, idx, arr) => arr.indexOf(m) === idx
       );
 

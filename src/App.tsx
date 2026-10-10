@@ -694,9 +694,10 @@ export const App: React.FC = () => {
                   className="w-full px-4 py-2.5 rounded-[14px] border border-[#6f797a] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#006874]"
                 >
                   <option value="gemini-2.5-flash">Gemini 2.5 Flash (推薦・極速智能)</option>
-                  <option value="gemini-1.5-flash">Gemini 1.5 Flash (經典穩定)</option>
-                  <option value="gemini-2.5-pro">Gemini 2.5 Pro (進階・深度推理)</option>
+                  <option value="gemini-2.0-flash">Gemini 2.0 Flash (經典穩定)</option>
+                  <option value="gemini-1.5-flash">Gemini 1.5 Flash (穩定版)</option>
                   <option value="gemini-1.5-pro">Gemini 1.5 Pro (經典高階)</option>
+                  <option value="gemini-2.5-pro">Gemini 2.5 Pro (進階・深度推理)</option>
                 </select>
               </div>
 

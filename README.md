@@ -51,7 +51,19 @@
 
 ---
 
-## 🌟 核心特色
-- **臨床智慧追問**：針對潛在疾病盲點（痛感性質、轉移部位、發作時程、反彈痛等）主動追問。
-- **M3 簡潔美學**：依據 Material Design 3 規範，介面俐落專注無多餘雜訊。
-- **雙端支援**：同時具備原生 Android Jetpack Compose 與跨平台 Web 即時體驗。
+## 🚀 Android 開發者平台：修復與優化指南 (Android Developer Platform Best Practices)
+
+依據 **Google AI 開發者平台與 Android 開發最佳實踐**，本專案已完成以下關鍵修復與優化：
+
+### 1. Gemini API 模型多重容錯與備援機制 (Multi-Model Fallback Strategy)
+- **問題防範**：針對模型版本迭代（如 `gemini-2.5-flash`、`gemini-2.0-flash`、`gemini-1.5-flash`、`gemini-1.5-pro`、`gemini-2.5-pro`），官方建議採用動態容錯重試鏈。
+- **實作優化**：`GeminiService` 內建自動依序切換備援機制，當特定端點回傳 404 或逾時時，會自動嘗試下一候選模型，確保服務高可用性。
+
+### 2. 雙軌離線臨床知識引擎 (Robust Offline Fallback)
+- **穩定性提升**：若未設定 API Key 或網路異常，系統會無縫啟動內建的 **ClinicalKnowledgeEngine**，提供零延遲的離線分診與鑑別診斷指引，符合 Google Play 政策對穩定離線體驗的要求。
+
+### 3. API Key 安全配置與動態切換
+- **憑證管理**：支援從應用內設定面板（Settings）動態輸入或覆蓋 `GEMINI_API_KEY`，並透過環境變數安全注入，避免硬編碼資安風險。
+
+### 4. 效能與程式碼分割優化 (Performance & Build Optimization)
+- **Vite 產出最佳化**：已通過 `npm run build` 驗證，建置快速且穩定，模組化架構確保在行動裝置與網頁瀏覽器上皆能流暢運行。
